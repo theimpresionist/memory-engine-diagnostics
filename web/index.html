@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Memory Engine Diagnostics Suite - A comprehensive memory allocator benchmarking and visualization tool">
+    <title>Memory Engine: Diagnostics Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">MEMORY ENGINE: <span class="highlight">DIAGNOSTICS SUITE</span></h1>
+                <div class="author-info">
+                    <span class="label">AUTHOR:</span>
+                    <span class="value">BAMBANG HUTAGALUNG</span>
+                    <span class="label">STATUS:</span>
+                    <span class="status-badge" id="status-badge">NOMINAL</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="metric-card header-metric">
+                    <span class="metric-label">LATENCY</span>
+                    <span class="metric-value cyan" id="latency-value">0.0ns</span>
+                </div>
+                <div class="metric-card header-metric">
+                    <span class="metric-label">THROUGHPUT</span>
+                    <span class="metric-value cyan" id="throughput-value">0.0k</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <aside class="sidebar left-sidebar">
+                <section class="panel">
+                    <h2 class="panel-title">MEMORY ALLOCATORS</h2>
+                    <div class="button-group" id="allocator-buttons">
+                        <button class="btn" data-allocator="0">Standard (new/delete)</button>
+                        <button class="btn active" data-allocator="1">Pool Allocator</button>
+                        <button class="btn" data-allocator="2">Stack Allocator</button>
+                        <button class="btn" data-allocator="3">Jemalloc (Sim)</button>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="panel-title">CONCURRENCY BENCH</h2>
+                    <div class="button-group" id="concurrency-buttons">
+                        <button class="btn" data-test="0">Mutex Contention</button>
+                        <button class="btn active" data-test="1">Atomic Performance</button>
+                        <button class="btn" data-test="2">Producer-Consumer</button>
+                        <button class="btn" data-test="3">Thread Creation</button>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="panel-title">OBJECT SIZE</h2>
+                    <div class="select-wrapper">
+                        <select id="object-size" class="select">
+                            <option value="64">Small Object (64B)</option>
+                            <option value="256">Medium Object (256B)</option>
+                            <option value="4096" selected>Large Object (4KB)</option>
+                            <option value="65536">Huge Object (64KB)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="panel-title">ALIGNMENT</h2>
+                    <div class="select-wrapper">
+                        <select id="alignment" class="select">
+                            <option value="8">8-byte</option>
+                            <option value="16">16-byte</option>
+                            <option value="32" selected>32-byte</option>
+                            <option value="64">64-byte</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">OBJECT COUNT</span>
+                            <span class="slider-value" id="object-count-value">85,500</span>
+                        </div>
+                        <input type="range" id="object-count" class="slider" min="1000" max="200000" value="85500" step="500">
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">BENCHMARK RUNS</span>
+                            <span class="slider-value" id="iterations-value">10 ITERATIONS</span>
+                        </div>
+                        <input type="range" id="iterations" class="slider" min="1" max="100" value="10">
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">THREADS</span>
+                            <span class="slider-value" id="threads-value">56 CORES</span>
+                        </div>
+                        <input type="range" id="threads" class="slider" min="1" max="128" value="56">
+                    </div>
+                </section>
+
+                <button class="btn btn-primary btn-run" id="run-btn">
+                    <span class="btn-icon">▶</span>
+                    RUN SUITE
+                </button>
+            </aside>
+
+            <!-- Center - Visualization -->
+            <main class="visualization-area">
+                <canvas id="memory-grid" class="memory-grid"></canvas>
+                
+                <div class="bottom-panels">
+                    <div class="log-panel">
+                        <h3 class="panel-subtitle">EVENT LOG</h3>
+                        <div class="log-content" id="event-log">
+                            <div class="log-entry system">[System] Test sequence aborted.</div>
+                            <div class="log-entry warmup">[Warmup] Commencing 10 averaged iterations...</div>
+                            <div class="log-entry config">[Config] Alignment: 32-byte.</div>
+                            <div class="log-entry init">[Init] Allocated 85,500 objects, size Large Object (4KB).</div>
+                        </div>
+                    </div>
+                    <div class="conflicts-panel">
+                        <h3 class="panel-subtitle">HARDWARE CONFLICTS</h3>
+                        <div class="conflicts-content" id="conflicts">
+                            <div class="no-conflicts">No critical conflicts found.</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar right-sidebar">
+                <section class="metric-panel">
+                    <div class="metric-header">
+                        <h3 class="metric-title">CONTENTION</h3>
+                        <span class="metric-value-small" id="contention-value">0.7MS</span>
+                    </div>
+                    <canvas id="contention-graph" class="mini-graph"></canvas>
+                </section>
+
+                <section class="metric-panel pressure-panel">
+                    <div class="metric-header">
+                        <h3 class="metric-title">PRESSURE INDEX</h3>
+                    </div>
+                    <div class="pressure-display">
+                        <div class="pressure-bars" id="pressure-bars"></div>
+                        <span class="pressure-value" id="pressure-value">1%</span>
+                    </div>
+                </section>
+
+                <section class="metric-panel internal-state">
+                    <h3 class="metric-title">INTERNAL STATE</h3>
+                    <div class="state-rows">
+                        <div class="state-row">
+                            <span class="state-label">ALLOCATIONS</span>
+                            <span class="state-value" id="allocations-value">5,338,399</span>
+                        </div>
+                        <div class="state-row">
+                            <span class="state-label">FRAGMENTATION</span>
+                            <span class="state-value" id="fragmentation-value">2.0%</span>
+                        </div>
+                        <div class="state-row">
+                            <span class="state-label">PEAK DEPTH</span>
+                            <span class="state-value" id="peak-depth-value">0</span>
+                        </div>
+                        <div class="state-row">
+                            <span class="state-label">THREAD DRIFT</span>
+                            <div class="thread-drift-bar">
+                                <div class="drift-fill" id="drift-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>
